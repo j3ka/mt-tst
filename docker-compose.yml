@@ -1,0 +1,65 @@
+version: '3'
+services:
+    nginx:
+        build:
+            context: ./docker/dev
+            dockerfile: nginx.docker
+        volumes:
+            - ./web-app:/container-app
+        depends_on:
+            - php-fpm
+        ports:
+            - "8888:80"
+        networks:
+            - inner
+
+    php-fpm:
+        build:
+            context: ./docker/dev
+            dockerfile: php-fpm.docker
+        volumes:
+            - ./web-app:/container-app
+        environment:
+            XDEBUG_CONFIG: "remote_host=192.168.150.1 remote_enable=1"
+            PHP_IDE_CONFIG: "serverName=Docker"
+        depends_on:
+            - mysql
+        networks:
+            - inner
+
+    php-cli:
+        build:
+            context: ./docker/dev
+            dockerfile: php-cli.docker
+        volumes:
+            - ./web-app:/container-app
+            - composer:/root/.composer/cache
+        depends_on:
+            - mysql
+        networks:
+            - inner
+
+    mysql:
+        image: mysql:8
+        volumes:
+            - mysql:/var/lib/mysql
+        environment:
+            MYSQL_DATABASE: tst
+            MYSQL_USER: tst
+            MYSQL_PASSWORD: tst
+            MYSQL_ROOT_PASSWORD: root
+        ports:
+            - "33061:3306"
+        networks:
+            - inner
+networks:
+    inner:
+        driver: bridge
+        ipam:
+            driver: default
+            config:
+                - subnet: 192.168.150.0/28
+volumes:
+    mysql:
+    composer:
+
