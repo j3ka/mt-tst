@@ -2,22 +2,33 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use App\Http\Requests\LoginRequest;
+use Illuminate\Contracts\Routing\ResponseFactory;
 use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 class AuthController extends Controller
 {
-    public function login(Request $request): Response
+    private ResponseFactory $responseFactory;
+
+    public function __construct(ResponseFactory $responseFactory)
     {
-        $credentials = $request->only(['username', 'password']);
+        $this->responseFactory = $responseFactory;
+    }
+
+    public function login(LoginRequest $request): Response
+    {
+        $credentials = $request->validated();
         $token = Auth::attempt($credentials);
 
         if (false === $token) {
-            return response()->json(['error' => 'Unauthorized'], Response::HTTP_UNAUTHORIZED);
+            return $this->responseFactory->json(
+                ['error' => 'Unauthorized'],
+                Response::HTTP_UNAUTHORIZED
+            );
         }
 
-        return response()->json([
+        return $this->responseFactory->json([
             'access_token' => $token,
             'token_type' => 'bearer',
             'expires_in' => 3600,
