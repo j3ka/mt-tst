@@ -1,27 +1,12 @@
 <?php
 
-use Chuckrincon\LumenConfigDiscover\DiscoverServiceProvider;
-use Tymon\JWTAuth\Providers\LumenServiceProvider;
-
-require_once __DIR__.'/../vendor/autoload.php';
-
-(new Laravel\Lumen\Bootstrap\LoadEnvironmentVariables(
-    dirname(__DIR__)
-))->bootstrap();
-
-date_default_timezone_set(env('APP_TIMEZONE', 'UTC'));
-
-$app = new Laravel\Lumen\Application(
-    dirname(__DIR__)
+$app = new Illuminate\Foundation\Application(
+    $_ENV['APP_BASE_PATH'] ?? dirname(__DIR__)
 );
 
-$app->withFacades();
-
-$app->withEloquent();
-
 $app->singleton(
-    Illuminate\Contracts\Debug\ExceptionHandler::class,
-    App\Exceptions\Handler::class
+    Illuminate\Contracts\Http\Kernel::class,
+    App\Http\Kernel::class
 );
 
 $app->singleton(
@@ -29,27 +14,9 @@ $app->singleton(
     App\Console\Kernel::class
 );
 
-$app->configure('app');
-
-// $app->middleware([
-//     App\Http\Middleware\ExampleMiddleware::class
-// ]);
-
-$app->routeMiddleware([
-    'auth' => App\Http\Middleware\Authenticate::class,
-]);
-
-$app->register(App\Providers\AppServiceProvider::class);
-$app->register(App\Providers\AuthServiceProvider::class);
-$app->register(App\Providers\EventServiceProvider::class);
-$app->register(LumenServiceProvider::class);
-$app->register(DiscoverServiceProvider::class);
-
-
-$app->router->group([
-    'prefix' => 'api',
-], function ($router) {
-    require __DIR__.'/../routes/api.php';
-});
+$app->singleton(
+    Illuminate\Contracts\Debug\ExceptionHandler::class,
+    App\Exceptions\Handler::class
+);
 
 return $app;
